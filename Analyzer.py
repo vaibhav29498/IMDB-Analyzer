@@ -1,15 +1,21 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import re
+import sys
 # import timeit
 
-print("Enter your user id:", end='')
+print("Enter user id:", end='')
 userId = input()
 # startTime = timeit.default_timer()
 url = 'http://www.imdb.com/user/ur' + userId + '/ratings'
 baseUrl = url
 page = urlopen(url)
 soup = BeautifulSoup(page, 'html.parser')
+title = soup.find('title').text
+if title == 'IMDb: ':
+    print('Error: Cannot access the ratings list! Please make sure that the rating list is public.')
+    sys.exit()
+title = re.search(r'IMDb: (.+)\'s Ratings', title).group(1)
 pageNo = re.search(r'Page [0-9]+ of ([0-9]+)', soup.find('div', 'desc').text)
 if pageNo is None:
     pageNo = 1
@@ -33,6 +39,6 @@ while curPage <= pageNo:
         soup = BeautifulSoup(page, 'html.parser')
     curPage += 1
 print('Total reviews:', number)
-print('Your average rating: %.2f' % (yourRating / number))
+print(title + '\'s average rating: %.2f' % (yourRating / number))
 print('IMDB average rating: %.2f' % (imdbRating / number))
 # print(timeit.default_timer() - startTime)
